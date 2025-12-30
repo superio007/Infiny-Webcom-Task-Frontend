@@ -1,12 +1,1 @@
 @import "tailwindcss";
-
-/* Custom utilities that extend Tailwind */
-@layer utilities {
-  .skip-to-main {
-    @apply absolute -top-10 left-0 bg-blue-500 text-white px-2 py-1 no-underline z-50 transition-all duration-300;
-  }
-
-  .skip-to-main:focus {
-    @apply top-0;
-  }
-}

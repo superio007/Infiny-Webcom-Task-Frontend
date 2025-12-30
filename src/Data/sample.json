@@ -1,0 +1,73 @@
+{
+  "success": true,
+  "data": {
+    "fullName": "Kiran Pramod Dhoke",
+    "email": "dhokekiran88@gmail.com",
+    "phone": "+91-80979 72852",
+    "skills": [
+      {
+        "frontend": [
+          "React.js",
+          "Next.js",
+          "Tailwind",
+          "HTML5",
+          "CSS3",
+          "JavaScript (ES6+)"
+        ]
+      },
+      {
+        "backend": ["Node.js", "Strapi", "PHP"]
+      },
+      {
+        "databases": ["MySQL", "PostgreSQL", "Redis", "Firebase"]
+      },
+      {
+        "cms/e-commerce": ["WordPress", "WooCommerce (Headless)", "Shopify"]
+      },
+      {
+        "devops/tools": [
+          "Git",
+          "Docker",
+          "Postman",
+          "VS Code",
+          "Jira",
+          "VPS Hosting"
+        ]
+      }
+    ],
+    "workExperience": [
+      {
+        "company": "Digimagnetix",
+        "role": "Full Stack Developer",
+        "duration": "Feb 2025 - Nov 2025"
+      },
+      {
+        "company": "I Fly Now (IFN)",
+        "role": "Full-stack Developer",
+        "duration": "Apr 2024 - Feb 2025"
+      },
+      {
+        "company": "Promodome Digital (Internship)",
+        "role": "Front-End Developer",
+        "duration": "Nov 2023 – Feb 2024"
+      }
+    ],
+    "education": [
+      {
+        "institution": "Mumbai University",
+        "degree": "Bachelor of Computer Science",
+        "year": "2020 - 2023"
+      },
+      {
+        "institution": "MAHARASHTRA STATE BOARD",
+        "degree": "H.S.C.",
+        "year": "2019 - 2020"
+      },
+      {
+        "institution": "MAHARASHTRA SATATE BOARD",
+        "degree": "S.S.C.",
+        "year": "2017 - 2018"
+      }
+    ]
+  }
+}
