@@ -49,7 +49,7 @@ const PdfUploader = () => {
       formData.append("file", file);
 
       const res = await axios.post(
-        "http://localhost:4000/parse-bank-statement",
+        `${import.meta.env.VITE_URL}/parse-bank-statement`,
         formData
       );
 
