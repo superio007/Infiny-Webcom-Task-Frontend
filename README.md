@@ -1,65 +1,16 @@
-# Bank Statement Web UI
+# React + Vite
 
-A React TypeScript application for uploading and processing PDF bank statements.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## Project Structure
+Currently, two official plugins are available:
 
-```
-src/
-├── components/     # React components
-├── services/       # API clients and external services
-├── hooks/          # Custom React hooks
-├── types/          # TypeScript type definitions
-├── utils/          # Utility functions
-├── App.tsx         # Main application component
-├── main.tsx        # Application entry point
-└── test-setup.ts   # Jest test configuration
-```
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## Available Scripts
+## React Compiler
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run test` - Run tests
-- `npm run test:watch` - Run tests in watch mode
-- `npm run test:coverage` - Run tests with coverage report
-- `npm run type-check` - Run TypeScript type checking
-- `npm run lint` - Run ESLint
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-## Technology Stack
+## Expanding the ESLint configuration
 
-- **React 19** with TypeScript
-- **Vite** for build tooling
-- **Jest** with React Testing Library for testing
-- **fast-check** for property-based testing
-- **CSS Modules** for styling (configured)
-
-## Path Aliases
-
-The project is configured with TypeScript path aliases:
-
-- `@/` → `src/`
-- `@/components/` → `src/components/`
-- `@/services/` → `src/services/`
-- `@/hooks/` → `src/hooks/`
-- `@/types/` → `src/types/`
-- `@/utils/` → `src/utils/`
-
-## Testing
-
-The project includes both unit testing and property-based testing:
-
-- **Unit Tests**: Using Jest and React Testing Library
-- **Property-Based Tests**: Using fast-check for testing universal properties
-- **Test Setup**: Includes mocks for File API, ResizeObserver, and matchMedia
-
-## Development
-
-1. Install dependencies: `npm install`
-2. Start development server: `npm run dev`
-3. Run tests: `npm test`
-4. Build for production: `npm run build`
-
-## Integration
-
-This frontend is designed to integrate with the DocSift API backend at `/v1/extract/bank-statement` endpoint.
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
