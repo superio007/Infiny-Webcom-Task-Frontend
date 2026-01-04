@@ -1,6 +1,34 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
+const parseAmount = (val) => {
+  if (!val) return null;
+  const cleaned = val.toString().replace(/,/g, "").replace(/^\./, "");
+
+  const num = Number(cleaned);
+  return isNaN(num) ? null : num.toFixed(2);
+};
+
+const normalizeTransaction = (tx) => {
+  const validDate = /\d{2}\/\d{2}\/\d{2}/.test(tx?.date || "");
+
+  const debit = parseAmount(tx?.debitAmount);
+  const credit = parseAmount(tx?.creditAmount);
+
+  return {
+    date: validDate ? tx.date : "",
+    description: tx?.description?.trim() || "",
+    debitAmount: debit,
+    creditAmount: credit,
+    runningBalance: parseAmount(tx?.runningBalance),
+    isValid: Boolean(tx?.description && (debit !== null || credit !== null)),
+  };
+};
+
+/* =========================
+   COMPONENT
+========================= */
+
 const PdfUploader = () => {
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -47,13 +75,19 @@ const PdfUploader = () => {
     try {
       const formData = new FormData();
       formData.append("file", file);
+
       const baseURL = import.meta.env.VITE_URL;
       const res = await axios.post(baseURL, formData);
 
-      setResult(res.data.data);
-      setDone(true);
+      // API returns { success, fileName, accounts } directly
+      if (res?.data?.success) {
+        setResult(res.data);
+        setDone(true);
+      } else {
+        setError("Failed to process PDF");
+      }
     } catch (err) {
-      setError(err.message || "Failed to process PDF");
+      setError("Failed to process PDF");
     } finally {
       setLoading(false);
     }
@@ -69,7 +103,24 @@ const PdfUploader = () => {
     setActiveAccount(0);
   };
 
-  const account = result?.accounts?.[activeAccount];
+  if (done && !result?.accounts?.length) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-red-600">
+        No accounts found in this PDF
+      </div>
+    );
+  }
+
+  const rawAccount = result?.accounts?.[activeAccount];
+
+  const account = rawAccount
+    ? {
+        ...rawAccount,
+        transactions: rawAccount.transactions
+          .map(normalizeTransaction)
+          .filter((tx) => tx.isValid),
+      }
+    : null;
 
   return (
     <div className="container mx-auto min-h-screen p-6">
@@ -110,98 +161,116 @@ const PdfUploader = () => {
           )}
         </form>
       ) : (
-        <div className="flex gap-8 max-w-7xl mx-auto">
-          {/* LEFT: DATA */}
-          <div className="w-1/2 space-y-4">
-            {/* ACCOUNT TABS */}
-            <div className="flex gap-2 border-b pb-2">
-              {result.accounts.map((acc, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setActiveAccount(idx)}
-                  className={`px-3 py-1 rounded text-sm ${
-                    idx === activeAccount
-                      ? "bg-black text-white"
-                      : "bg-gray-100"
-                  }`}
-                >
-                  {acc.bankName || "Unknown Bank"} #{idx + 1}
-                </button>
-              ))}
-            </div>
+        <div className="flex flex-col gap-3">
+          <h2 className="text-xl">File Name: {result?.fileName}</h2>
+          <div className="flex gap-8 max-w-7xl mx-auto">
+            {/* LEFT */}
+            <div className="w-1/2 space-y-4">
+              <div className="flex gap-2 border-b pb-2">
+                {result.accounts.map((acc, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setActiveAccount(idx)}
+                    className={`px-3 py-1 rounded text-sm ${
+                      idx === activeAccount
+                        ? "bg-black text-white"
+                        : "bg-gray-100"
+                    }`}
+                  >
+                    {acc?.bankName || "Unknown Bank"}
+                    {acc?.accountNumber ? ` • ${acc.accountNumber}` : ""}
+                  </button>
+                ))}
+              </div>
 
-            {/* ACCOUNT SUMMARY */}
-            <div className="border rounded-xl p-4 space-y-3 text-sm">
-              <h2 className="font-semibold text-lg">Account Summary</h2>
+              <div className="border rounded-xl p-4 space-y-3 text-sm">
+                <h2 className="font-semibold text-lg">Account Summary</h2>
 
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <strong>Bank:</strong> {account.bankName || "N/A"}
-                </div>
-                <div>
-                  <strong>Account No:</strong> {account.accountNumber || "N/A"}
-                </div>
-                <div>
-                  <strong>Holder:</strong> {account.accountHolderName || "N/A"}
-                </div>
-                <div>
-                  <strong>Type:</strong> {account.accountType || "N/A"}
-                </div>
-                <div>
-                  <strong>Currency:</strong> {account.currency || "N/A"}
-                </div>
-                <div>
-                  <strong>Period:</strong> {account.statementStartDate || "?"} –{" "}
-                  {account.statementEndDate || "?"}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <strong>Bank:</strong> {account?.bankName || "N/A"}
+                  </div>
+                  <div>
+                    <strong>Account No:</strong>{" "}
+                    {account?.accountNumber || "N/A"}
+                  </div>
+                  <div>
+                    <strong>Holder:</strong>{" "}
+                    {account?.accountHolderName || "N/A"}
+                  </div>
+                  <div>
+                    <strong>Type:</strong> {account?.accountType || "N/A"}
+                  </div>
+                  <div>
+                    <strong>Currency:</strong> {account?.currency || "N/A"}
+                  </div>
+                  <div>
+                    <strong>Period:</strong>{" "}
+                    {account?.statementStartDate || "?"} to{" "}
+                    {account?.statementEndDate || "?"}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* TRANSACTIONS */}
-            <div className="border rounded-xl overflow-auto max-h-96">
-              <table className="min-w-full text-xs">
-                <thead className="bg-gray-100 sticky top-0">
-                  <tr>
-                    <th className="p-2">Date</th>
-                    <th className="p-2">Description</th>
-                    <th className="p-2">Debit</th>
-                    <th className="p-2">Credit</th>
-                    <th className="p-2">Balance</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {account.transactions.map((tx, i) => (
-                    <tr key={i} className="border-t">
-                      <td className="p-2">{tx.date}</td>
-                      <td className="p-2">{tx.description}</td>
-                      <td className="p-2">{tx.debitAmount || "-"}</td>
-                      <td className="p-2">{tx.creditAmount || "-"}</td>
-                      <td className="p-2">{tx.runningBalance}</td>
+              <div className="border rounded-xl overflow-auto max-h-96">
+                <table className="min-w-full text-xs">
+                  <thead className="bg-gray-100 sticky top-0">
+                    <tr>
+                      <th className="p-2">Date</th>
+                      <th className="p-2">Description</th>
+                      <th className="p-2">Debit</th>
+                      <th className="p-2">Credit</th>
+                      <th className="p-2">Balance</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {account.transactions.length === 0 && (
+                      <tr>
+                        <td
+                          colSpan={5}
+                          className="p-4 text-center text-gray-500"
+                        >
+                          No valid transactions found
+                        </td>
+                      </tr>
+                    )}
+
+                    {account.transactions.map((tx) => (
+                      <tr
+                        key={`${tx.date}-${tx.description}`}
+                        className="border-t"
+                      >
+                        <td className="p-2">{tx.date || "-"}</td>
+                        <td className="p-2">{tx.description}</td>
+                        <td className="p-2">{tx.debitAmount ?? "-"}</td>
+                        <td className="p-2">{tx.creditAmount ?? "-"}</td>
+                        <td className="p-2">{tx.runningBalance ?? "-"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <button
+                onClick={reset}
+                className="px-4 py-2 bg-black text-white rounded"
+              >
+                Upload another PDF
+              </button>
             </div>
 
-            <button
-              onClick={reset}
-              className="px-4 py-2 bg-black text-white rounded"
-            >
-              Upload another PDF
-            </button>
-          </div>
-
-          {/* RIGHT: PDF PREVIEW */}
-          <div className="w-1/2">
-            <h2 className="text-lg font-semibold mb-2">PDF Preview</h2>
-            {previewUrl && (
-              <embed
-                src={previewUrl}
-                type="application/pdf"
-                width="100%"
-                height="700"
-              />
-            )}
+            {/* RIGHT */}
+            <div className="w-1/2">
+              <h2 className="text-lg font-semibold mb-2">PDF Preview</h2>
+              {previewUrl && (
+                <embed
+                  src={previewUrl}
+                  type="application/pdf"
+                  width="100%"
+                  height="700"
+                />
+              )}
+            </div>
           </div>
         </div>
       )}
